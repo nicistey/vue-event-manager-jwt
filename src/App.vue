@@ -67,6 +67,7 @@
         <button type="submit">Сохранить изменения</button>
     </form>
   </div>
+  <button @click="googleLogin">Войти с Google</button>
 </template>
 
 <script>
@@ -80,27 +81,66 @@ export default {
       editingEvent: null,
       error: null,
       loading: true,
-      successMessage: null
+      jwt: null,
+      successMessage: null,
+      authError: null, // добавлено для вывода ошибки
     };
   },
   mounted() {
     this.fetchEvents();
-  },
+  // if (this.$route) {
+  //   const route = this.$route.path;
+  //   if (route === '/auth/callback') {
+  //     this.handleGoogleCallback();
+  //   }
+  // } else {
+  //   console.error('this.$route is undefined in mounted hook');
+  // }
+},
   methods: {
     fetchEvents() {
       this.loading = true;
       this.error = null;
-      axios.get('http://localhost:8090/api/events')
-        .then(response => {
-          this.events = response.data;
-        })
-        .catch(error => {
-          this.error = error.message || 'Ошибка при загрузке данных';
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },  
+      // axios.get('http://localhost:8090/api/events')
+      //   .then(response => {
+        axios.get('http://localhost:8090/api/events', {
+        headers: {
+          Authorization: `Bearer ${this.jwt}`
+        }
+      })
+      .then(response => {
+        this.events = response.data;
+      })
+      .catch(error => {
+        this.error = error.message || 'Ошибка при загрузке данных';
+      })
+      .finally(() => {
+        this.loading = false;
+      });
+    },
+    googleLogin() {
+      window.location.href = 'http://localhost:8090/auth';
+    },
+    // handleGoogleCallback() {
+    //   axios.get('http://localhost:8090/auth/callback', {
+    //     params: {
+    //       state: this.$route.query.state,
+    //       code: this.$route.query.code,
+    //     },
+    //   })
+    //   .then(response => {
+    //     const jwt = response.data.token;
+    //     if (jwt) {
+    //       localStorage.setItem('jwt', jwt);
+    //       this.$router.push('/'); 
+    //     } else {
+    //       this.authError = "JWT не получен в ответе"; 
+    //     }
+    //   })
+    //   .catch(error => {
+    //     this.authError = "Ошибка при получении JWT: " + error; //вывод ошибки в template
+    //   });
+    // },
     addEvent() {
         // const date = new Date(this.newEvent.Event_time);
         // const formattedDate = date.toISOString().slice(0, 19) + "Z"; 
@@ -128,8 +168,8 @@ export default {
     updateEvent() {
         axios.post(`http://localhost:8090/api/events/${this.editingEvent.IDev}`, this.editingEvent)
             .then(response => {
-            this.successMessage = 'Событие успешно изменено!'; // Исправлено сообщение
-            this.editingEvent = null; // Сброс формы после обновления
+            this.successMessage = 'Событие успешно изменено!'; 
+            this.editingEvent = null; 
             this.fetchEvents();
             setTimeout(() => this.successMessage = null, 3000);
             })
