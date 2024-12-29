@@ -101,7 +101,11 @@ export default {
       this.loading = true;
       this.error = null;
       const config = this.jwt ? { headers: { Authorization: `Bearer ${this.jwt}` } } : {};
-      axios.get('http://localhost:8090/api/events', config)
+      let apiUrl = 'http://localhost:8090/api/events';
+      if (this.isAuthenticated) {
+        apiUrl = 'http://localhost:8090/api/eventsByID';
+      }
+      axios.get(apiUrl, config)
         .then(response => {
           this.events = response.data;
         })
