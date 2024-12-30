@@ -1,17 +1,30 @@
 <template>
   <div class="app">
-    <h1>Список ивентов</h1>
+    <h1>Список мероприятий</h1>
+    <h2>Общие мероприятия</h2>
     <div v-if="loading">Загрузка...</div>
     <div v-else-if="error">{{ error.message }}</div>
     <ul v-else>
       <li v-for="event in events" :key="event.IDev">
         {{ event.Event_name }} {{ event.Event_time }} {{ event.Description }} {{ event.Location }} - {{ event.Is_public }}
+      </li>
+    </ul>
+
+    <div v-if="isAuthenticated">
+      <h2>Список моих мероприятий</h2>
+      <div v-if="loading">Загрузка...</div>
+      <div v-else-if="error">{{ error.message }}</div>
+      <ul v-else>
+      <li v-for="event in userEvents" :key="event.IDev">
+        {{ event.Event_name }} {{ event.Event_time }} {{ event.Description }} {{ event.Location }} - {{ event.Is_public }}
         <button v-if="isAuthenticated" @click="editEvents(event)">Изменить</button>
         <button v-if="isAuthenticated" @click="deleteEvent(event.IDev)">Удалить</button>
       </li>
     </ul>
+    </div>
+    
 
-    <h2>Добавить ивент</h2>
+    <h2 v-if="isAuthenticated">Добавить ивент</h2>
     <form v-if="isAuthenticated" @submit.prevent="addEvent">
       <div>
         <label for="Event_name">Название:</label>
@@ -36,7 +49,7 @@
       <button type="submit">Добавить</button>
     </form>
 
-    <h2>Изменить ивент</h2>
+    <h2 v-if="editingEvent && isAuthenticated">Изменить ивент</h2>
     <form v-if="editingEvent && isAuthenticated" @submit.prevent="updateEvent">
       <div>
         <label for="edit-IDev">ID:</label>
@@ -77,6 +90,7 @@ export default {
   data() {
     return {
       events: [],
+      userEvents: [],
       newEvent: { Event_name: '', Event_time: '', Description: '', Location: '', Is_public: false },
       editingEvent: null,
       error: null,
@@ -102,25 +116,34 @@ export default {
       this.error = null;
       const config = this.jwt ? { headers: { Authorization: `Bearer ${this.jwt}` } } : {};
       let apiUrl = 'http://localhost:8090/api/events';
-      if (this.isAuthenticated) {
-        apiUrl = 'http://localhost:8090/api/eventsByID';
-      }
+      
       axios.get(apiUrl, config)
         .then(response => {
           this.events = response.data;
         })
         .catch(error => {
           if (error.response && error.response.status === 401) {
-            this.isAuthenticated = false;
-            this.error = "Необходимо авторизоваться";
-            localStorage.removeItem('jwt');
-          } else {
             this.error = error.message || 'Ошибка при загрузке данных';
           }
         })
         .finally(() => {
           this.loading = false;
         });
+      if (this.isAuthenticated) {
+        apiUrl = 'http://localhost:8090/api/eventsByID';
+        axios.get(apiUrl, config)
+        .then(response => {
+          this.userEvents = response.data;
+        })
+        .catch(error => {
+          if (error.response && error.response.status === 401) {
+            this.error = error.message || 'Ошибка при загрузке данных';
+          }
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+      }
     },
    googleLogin() {
       window.location.href = "http://localhost:8090/auth";
@@ -186,7 +209,111 @@ export default {
 </script>
 
 <style scoped>
+.app {
+  font-family: sans-serif;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  background-color: #f9f9f9;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+li button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin-left: 5px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+li button:hover {
+    background-color: #45a049;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 5px;
+}
+
+form > div {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+form label {
+  margin-right: 10px;
+  min-width: 80px;
+}
+
+form input[type="text"],
+form input[type="checkbox"]{
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  flex: 1; /* Разрешить элементам ввода растягиваться */
+}
+
+form button[type="submit"] {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-top: 10px;
+}
+
+form button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
 .error {
-  color: red;
+    color: red;
+    margin-top: 10px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-top: 10px;
+}
+
+button:hover {
+    background-color: #0056b3;
 }
 </style>
