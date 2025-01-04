@@ -155,7 +155,8 @@ export default {
       this.loading = true;
       this.error = null;
       const config = this.jwt ? { headers: { Authorization: `Bearer ${this.jwt}` } } : {};
-      let apiUrl = 'http://localhost:8090/api/events';
+      let apiUrl = 'http://localhost:6080/api/events';
+      //let apiUrl = 'http://localhost:8090/api/events';
       
       axios.get(apiUrl, config)
         .then(response => {
@@ -170,7 +171,8 @@ export default {
           this.loading = false;
         });
       if (this.isAuthenticated) {
-        apiUrl = 'http://localhost:8090/api/eventsByID';
+        //apiUrl = 'http://localhost:8090/api/eventsByID';
+        apiUrl = 'http://localhost:6080/api/eventsByID';
         axios.get(apiUrl, config)
         .then(response => {
           this.userEvents = response.data;
@@ -186,7 +188,8 @@ export default {
       }
     },
    googleLogin() {
-      window.location.href = "http://localhost:8090/auth";
+      window.location.href = "http://localhost:6080/auth";
+      //window.location.href = "http://localhost:8090/auth";
     },
     handleGoogleAuthCallback(token) {
       console.log('перед сохранением токена:', this.isAuthenticated);
@@ -199,7 +202,8 @@ export default {
 
     addEvent() {
       const config = this.jwt ? { headers: { Authorization: `Bearer ${this.jwt}` } } : {};
-      axios.post('http://localhost:8090/api/events', this.newEvent, config)
+      axios.post('http://localhost:6080/api/events', this.newEvent, config)
+      //axios.post('http://localhost:8090/api/events', this.newEvent, config)
         .then(response => {
           this.successMessage = 'Событие успешно добавлено!';
           this.newEvent = { Event_name: '', Event_time: '', Description: '', Location: '', Is_public: false };
@@ -215,7 +219,8 @@ export default {
     },
     updateEvent() {
       const config = this.jwt ? { headers: { Authorization: `Bearer ${this.jwt}` } } : {};
-      axios.post(`http://localhost:8090/api/events/${this.editingEvent.IDev}`, this.editingEvent, config)
+      axios.post(`http://localhost:6080/api/events/${this.editingEvent.IDev}`, this.editingEvent, config)
+      //axios.post(`http://localhost:8090/api/events/${this.editingEvent.IDev}`, this.editingEvent, config)
         .then(() => {
           this.successMessage = 'Событие успешно изменено!';
           this.editingEvent = null;
@@ -228,7 +233,8 @@ export default {
     },
     deleteEvent(id) {
       const config = this.jwt ? { headers: { Authorization: `Bearer ${this.jwt}` } } : {};
-      axios.delete(`http://localhost:8090/api/events/${id}`, config)
+      axios.delete(`http://localhost:6080/api/events/${id}`, config)
+      //axios.delete(`http://localhost:8090/api/events/${id}`, config)
         .then(() => {
           this.successMessage = 'Событие успешно удалено!';
           this.fetchEvents();
