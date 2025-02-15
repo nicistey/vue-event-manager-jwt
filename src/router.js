@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import App from './App.vue'; // Adjust path if necessary
+import store from './store'; 
 
 const routes = [
   {
@@ -43,13 +44,12 @@ const router = createRouter({
 // Navigation guard to check authentication
 router.beforeEach(async (to, from, next) => {
     if (to.meta.requiresAuth) {
-      const store = router.app.$store;
       if (store.getters['auth/isAuthenticated']) {
         next();
       } else {
         await new Promise(resolve => {
           const unsubscribe = store.watch(
-            state => state.auth.isAuthenticated,
+            (state) => state.auth.isAuthenticated,
             (isAuthenticated) => {
               if (isAuthenticated) {
                 unsubscribe();
@@ -65,6 +65,6 @@ router.beforeEach(async (to, from, next) => {
     } else {
       next();
     }
-  });
+});
 
 export default router;
